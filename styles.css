@@ -828,6 +828,35 @@ html:not(.js) #loader { display: none; }
   .scroll-cue { display: none; }
 }
 
+/* —— static print/PDF mode (/?pdf=1) —— */
+
+.print-url { display: none; }
+
+.print-mode .print-url {
+  display: block;
+  margin: 0;
+  padding: 1.2rem var(--gutter) 0;
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+}
+
+.print-mode #scene,
+.print-mode .grain,
+.print-mode #loader,
+.print-mode .hud,
+.print-mode .film-chip,
+.print-mode .shutter-blink,
+.print-mode .scroll-cue,
+.print-mode .detect-row { display: none !important; }
+
+.print-mode .nav { position: static; padding-block: 1.2rem; }
+.print-mode .hero { min-height: 0; padding-top: 2rem; }
+.print-mode .exif-strip { position: static; margin-top: 3rem; }
+.print-mode .marquee-track { animation: none; }
+.print-mode .frame, .print-mode .notes, .print-mode .part-head, .print-mode .protocol li { break-inside: avoid; }
+
 /* —— reduced motion ————————————— */
 
 @media (prefers-reduced-motion: reduce) {

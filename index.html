@@ -12,6 +12,10 @@
   <link rel="stylesheet" href="styles.css">
   <script>
     document.documentElement.classList.add('js');
+    /* static print/PDF mode: /?pdf=1 */
+    if (/[?&]pdf/.test(location.search)) {
+      document.documentElement.classList.add('no-anim', 'print-mode');
+    }
     /* If the animation libraries never arrive, show the page anyway. */
     window.__animBooted = false;
     setTimeout(function () {
@@ -87,6 +91,8 @@
   <div id="smooth-wrapper">
     <div id="smooth-content">
       <main id="top">
+
+        <p class="print-url" aria-hidden="true">https://andrewboldi.github.io/cs180-project0/</p>
 
         <section class="hero">
           <p class="eyebrow hero-eyebrow">CS180 · Intro to Computer Vision &amp; Computational Photography · Fall 2026</p>

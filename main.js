@@ -7,7 +7,8 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 
 window.__animBooted = true;
 
-const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  || document.documentElement.classList.contains('print-mode');
 
 gsap.registerPlugin(ScrollTrigger, ScrollSmoother, SplitText);
 
