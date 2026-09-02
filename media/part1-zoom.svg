@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1200" viewBox="0 0 900 1200">
+  <defs>
+    <radialGradient id="g" cx="60%" cy="38%" r="90%">
+      <stop offset="0%" stop-color="#EAE2D3"/>
+      <stop offset="55%" stop-color="#D8CCB6"/>
+      <stop offset="100%" stop-color="#C2B190"/>
+    </radialGradient>
+  </defs>
+  <rect width="900" height="1200" fill="url(#g)"/>
+  <g stroke="#7E6C4E" stroke-width="1.5" opacity="0.35">
+    <line x1="300" y1="0" x2="300" y2="1200"/>
+    <line x1="600" y1="0" x2="600" y2="1200"/>
+    <line x1="0" y1="400" x2="900" y2="400"/>
+    <line x1="0" y1="800" x2="900" y2="800"/>
+  </g>
+  <g stroke="#7E6C4E" fill="none" opacity="0.7">
+    <circle cx="450" cy="600" r="120" stroke-width="2"/>
+    <line x1="330" y1="600" x2="570" y2="600" stroke-width="1.5"/>
+    <circle cx="450" cy="600" r="7" fill="#7E6C4E" stroke="none"/>
+  </g>
+  <text x="450" y="565" text-anchor="middle" font-family="Georgia, serif" font-size="150" fill="#7E6C4E" opacity="0.16">85</text>
+  <text x="450" y="655" text-anchor="middle" font-family="monospace" font-size="30" letter-spacing="8" fill="#7E6C4E" opacity="0.45">MM · ZOOMED</text>
+  <text x="450" y="768" text-anchor="middle" font-family="monospace" font-size="22" letter-spacing="5" fill="#6B5B40" opacity="0.6">REPLACE WITH YOUR PHOTO · 3:4</text>
+</svg>
