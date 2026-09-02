@@ -91,22 +91,14 @@
         <section class="hero">
           <p class="eyebrow hero-eyebrow">CS180 · Intro to Computer Vision &amp; Computational Photography · Fall 2026</p>
           <h1 class="hero-title">
-            <span class="line-mask"><span class="line">Becoming friends</span></span>
-            <span class="line-mask"><span class="line">with <em class="accent">my camera</em></span></span>
+            <span class="line-mask" data-speed="1.05"><span class="line">Becoming friends</span></span>
+            <span class="line-mask" data-speed="0.96"><span class="line">with <em class="accent">my camera</em></span></span>
           </h1>
-          <p class="hero-sub">Three small experiments in perspective — how focal length and where you stand reshape a photograph before you ever press the shutter.</p>
+          <p class="hero-sub" data-speed="0.985">Three small experiments in perspective — how focal length and where you stand reshape a photograph before you ever press the shutter.</p>
           <div class="exif-strip" aria-hidden="true">
             <span id="exif-f">f/1.8</span><span id="exif-shutter">1/250&nbsp;s</span><span id="exif-iso">ISO&nbsp;200</span><span id="exif-focal">26&nbsp;mm</span><span>Berkeley,&nbsp;CA</span>
           </div>
           <div class="scroll-cue"><span>Scroll</span><i></i></div>
-        </section>
-
-        <section class="brief">
-          <p class="brief-label">The brief</p>
-          <div class="brief-body">
-            <p>Get comfortable with the camera before the real projects begin. Each part below pairs two photographs that differ in a single decision — the distance between camera and subject — and looks at what that one decision does to faces, to buildings, and to space itself.</p>
-            <p class="brief-meta">Project 0 · due Sep 1, 2026 · UC Berkeley</p>
-          </div>
         </section>
 
         <section class="part" id="part-1">
@@ -116,13 +108,13 @@
             <p class="lede reveal">Two portraits, one face, one framing. In the first, the camera sits an arm's length away. In the second, I stepped back several feet and zoomed in until the face filled the frame again.</p>
           </header>
           <div class="pair">
-            <figure class="frame ratio-p">
+            <figure class="frame ratio-p" data-speed="1.04">
               <div class="frame-mask"><img src="media/part1-close.jpg" alt="Selfie taken at arm's length with the wide lens — facial features exaggerated"></div>
-              <figcaption>Fig. 1a — arm's length, no zoom</figcaption>
+              <figcaption data-lag="0.18">Fig. 1a — arm's length, no zoom</figcaption>
             </figure>
-            <figure class="frame ratio-p">
+            <figure class="frame ratio-p" data-speed="0.96">
               <div class="frame-mask"><img src="media/part1-zoom.jpg" alt="Portrait taken from several feet back with the lens zoomed in — proportions flattened"></div>
-              <figcaption>Fig. 1b — stepped back, zoomed in</figcaption>
+              <figcaption data-lag="0.18">Fig. 1b — stepped back, zoomed in</figcaption>
             </figure>
           </div>
           <div class="notes reveal">
@@ -138,13 +130,13 @@
             <p class="lede reveal">One building with a receding façade, photographed twice: from far away with the lens zoomed in, then from up close with no zoom — walking forward until the building takes up the same room in the frame.</p>
           </header>
           <div class="pair pair-landscape">
-            <figure class="frame ratio-l">
+            <figure class="frame ratio-l" data-speed="0.96">
               <div class="frame-mask"><img src="media/part2-zoom.jpg" alt="Classical campus building photographed from far away with the lens zoomed in — the columned facade looks flattened"></div>
-              <figcaption>Fig. 2a — far away + zoomed in</figcaption>
+              <figcaption data-lag="0.18">Fig. 2a — far away + zoomed in</figcaption>
             </figure>
-            <figure class="frame ratio-l">
+            <figure class="frame ratio-l" data-speed="1.04">
               <div class="frame-mask"><img src="media/part2-wide.jpg" alt="The same columned facade photographed from up close with no zoom — strong receding perspective"></div>
-              <figcaption>Fig. 2b — walked closer, no zoom</figcaption>
+              <figcaption data-lag="0.18">Fig. 2b — walked closer, no zoom</figcaption>
             </figure>
           </div>
           <div class="detect-row reveal">
@@ -163,21 +155,28 @@
             <h2 class="reveal">The dolly zoom</h2>
             <p class="lede reveal">Hitchcock's trick. Dolly the camera backward while zooming in, holding the subject at a constant size — the subject stays still while the world stretches away behind them.</p>
           </header>
-          <ol class="protocol reveal">
+          <ol class="protocol">
             <li><span>01</span>Pick a scene with real depth behind the subject</li>
             <li><span>02</span>Step backward as you zoom in</li>
             <li><span>03</span>Keep the subject the same size in every frame</li>
             <li><span>04</span>Stitch the stills into a looping GIF</li>
           </ol>
-          <figure class="frame frame-wide ratio-p">
+          <figure class="frame frame-wide ratio-p" data-speed="0.975">
             <div class="frame-mask"><img class="no-fx" src="media/part3-dollyzoom.gif" alt="Looping dolly zoom of a fountain pen — the pen holds its size while the room stretches behind it"></div>
-            <figcaption>Fig. 3 — dolly out, zoom in · looped GIF</figcaption>
+            <figcaption data-lag="0.18">Fig. 3 — dolly out, zoom in · looped GIF</figcaption>
           </figure>
           <div class="notes reveal">
             <p class="notes-label">Observations</p>
             <p>The subject is a fountain pen standing on a desk. I shot 26 stills, zooming out and then back in while moving the camera to hold the pen at a constant size, and stitched them into a GIF — since the sequence ends where it began, it loops seamlessly. The pen barely flinches, but the room behind it breathes: the background swells and compresses as the effective focal length changes. The surprise was how robust the illusion is — even a handheld, imperfect pull reads as vertigo once the subject's size is pinned.</p>
           </div>
         </section>
+
+        <div class="marquee" aria-hidden="true">
+          <div class="marquee-track">
+            <span>perspective · focal length · aperture · dolly zoom · parallax · compression&nbsp;·&nbsp;</span>
+            <span>perspective · focal length · aperture · dolly zoom · parallax · compression&nbsp;·&nbsp;</span>
+          </div>
+        </div>
 
         <footer class="colophon">
           <p class="colophon-title reveal">Shot slowly.</p>
@@ -199,6 +198,7 @@
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/ScrollTrigger.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/ScrollSmoother.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/SplitText.min.js"></script>
   <script type="importmap">
     {
       "imports": {

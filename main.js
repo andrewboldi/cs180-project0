@@ -3,18 +3,19 @@
 
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 
 window.__animBooted = true;
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-gsap.registerPlugin(ScrollTrigger, ScrollSmoother);
+gsap.registerPlugin(ScrollTrigger, ScrollSmoother, SplitText);
 
 /* ————————————————— three.js scene ————————————————— */
 
-const scroll = { target: 0, value: 0 };
 let rings = null;
 let sceneApi = null;
+const introScale = { v: 1 };
 
 try {
   const canvas = document.getElementById('scene');
@@ -99,6 +100,167 @@ try {
   dustFar.position.z = -2;
   scene.add(dustFar, dustNear);
 
+  /* — a century of cameras at the centre of the rig — */
+  const camMatBase = {
+    leather: new THREE.MeshStandardMaterial({ color: 0x3b3227, metalness: 0.15, roughness: 0.75, transparent: true }),
+    brass: new THREE.MeshStandardMaterial({ color: 0xb08d57, metalness: 0.92, roughness: 0.3, envMapIntensity: 1.2, transparent: true }),
+    silver: new THREE.MeshStandardMaterial({ color: 0xd9d3c3, metalness: 0.95, roughness: 0.3, envMapIntensity: 1.1, transparent: true }),
+    glass: new THREE.MeshStandardMaterial({ color: 0x171209, metalness: 0.7, roughness: 0.12, envMapIntensity: 1.4, transparent: true }),
+    gloss: new THREE.MeshStandardMaterial({ color: 0x27211a, metalness: 0.55, roughness: 0.28, envMapIntensity: 1.1, transparent: true }),
+  };
+
+  const holder = new THREE.Group();
+  rings.add(holder);
+  const eras = [];
+
+  const box = (g, mat, w, h, d, x, y, z) => {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+    m.position.set(x, y, z);
+    g.add(m);
+    return m;
+  };
+  const cyl = (g, mat, r, len, x, y, z, alongZ = true) => {
+    const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, len, 40), mat);
+    if (alongZ) m.rotation.x = Math.PI / 2;
+    m.position.set(x, y, z);
+    g.add(m);
+    return m;
+  };
+
+  const buildEra = (builder) => {
+    const kit = {};
+    Object.entries(camMatBase).forEach(([k, m]) => { kit[k] = m.clone(); });
+    const group = new THREE.Group();
+    builder(group, kit);
+    const mats = Object.values(kit);
+    group.visible = eras.length === 0;
+    eras.push({ group, mats, baseOp: mats.map((m) => m.opacity), fade: eras.length === 0 ? 1 : 0 });
+    holder.add(group);
+  };
+
+  /* 1900s — field camera on a rail, leather bellows */
+  buildEra((g, kit) => {
+    box(g, kit.brass, 1.02, 0.05, 0.46, 0, -0.5, 0);
+    box(g, kit.leather, 0.8, 0.8, 0.18, 0, 0.02, -0.38);
+    box(g, kit.gloss, 0.86, 0.86, 0.05, 0, 0.02, -0.5);
+    for (let i = 0; i < 6; i += 1) {
+      const s = 0.66 - i * 0.05 + (i % 2 ? 0.05 : 0);
+      box(g, kit.leather, s, s, 0.09, 0, 0.02, -0.24 + i * 0.105);
+    }
+    box(g, kit.gloss, 0.46, 0.46, 0.05, 0, 0.02, 0.42);
+    cyl(g, kit.brass, 0.15, 0.18, 0, 0.02, 0.53);
+    cyl(g, kit.glass, 0.11, 0.03, 0, 0.02, 0.63);
+    cyl(g, kit.brass, 0.05, 0.06, 0.3, -0.26, 0.42, false);
+  });
+
+  /* 1950s — twin-lens reflex */
+  buildEra((g, kit) => {
+    box(g, kit.leather, 0.6, 1.0, 0.46, 0, 0, 0);
+    box(g, kit.gloss, 0.5, 0.84, 0.05, 0, -0.04, 0.25);
+    cyl(g, kit.brass, 0.13, 0.1, 0, 0.16, 0.31);
+    cyl(g, kit.glass, 0.09, 0.03, 0, 0.16, 0.37);
+    cyl(g, kit.brass, 0.16, 0.13, 0, -0.2, 0.32);
+    cyl(g, kit.glass, 0.12, 0.03, 0, -0.2, 0.4);
+    box(g, kit.leather, 0.46, 0.16, 0.4, 0, 0.58, -0.01);
+    box(g, kit.brass, 0.22, 0.06, 0.03, 0, 0.42, 0.27);
+    cyl(g, kit.brass, 0.07, 0.06, 0.33, 0.05, 0.02, false).rotation.z = Math.PI / 2;
+    cyl(g, kit.brass, 0.055, 0.06, -0.33, -0.12, 0.02, false).rotation.z = Math.PI / 2;
+  });
+
+  /* 1970s — single-lens reflex */
+  buildEra((g, kit) => {
+    box(g, kit.leather, 1.1, 0.56, 0.34, 0, -0.06, 0);
+    box(g, kit.silver, 1.1, 0.11, 0.3, 0, 0.275, 0);
+    box(g, kit.silver, 0.34, 0.18, 0.26, 0, 0.41, 0);
+    cyl(g, kit.silver, 0.27, 0.05, 0, -0.06, 0.2);
+    cyl(g, kit.gloss, 0.22, 0.3, 0, -0.06, 0.37);
+    const focusRing = new THREE.Mesh(new THREE.TorusGeometry(0.225, 0.02, 24, 60), kit.brass);
+    focusRing.position.set(0, -0.06, 0.45);
+    g.add(focusRing);
+    cyl(g, kit.glass, 0.15, 0.03, 0, -0.06, 0.53);
+    cyl(g, kit.brass, 0.04, 0.04, 0.42, 0.36, 0.02, false);
+    cyl(g, kit.brass, 0.05, 0.05, -0.42, 0.36, 0, false);
+  });
+
+  /* today — the phone that shot this project */
+  buildEra((g, kit) => {
+    const slab = new THREE.Mesh(new RoundedBoxGeometry(0.54, 1.08, 0.06, 4, 0.05), kit.gloss);
+    g.add(slab);
+    const bump = new THREE.Mesh(new RoundedBoxGeometry(0.24, 0.34, 0.04, 3, 0.03), kit.leather);
+    bump.position.set(-0.11, 0.31, 0.04);
+    g.add(bump);
+    cyl(g, kit.brass, 0.055, 0.025, -0.11, 0.385, 0.065);
+    cyl(g, kit.glass, 0.04, 0.02, -0.11, 0.385, 0.082);
+    cyl(g, kit.brass, 0.055, 0.025, -0.11, 0.235, 0.065);
+    cyl(g, kit.glass, 0.04, 0.02, -0.11, 0.235, 0.082);
+    cyl(g, kit.silver, 0.018, 0.02, -0.035, 0.385, 0.065);
+    box(g, kit.silver, 0.5, 1.04, 0.006, 0, 0, -0.033);
+  });
+
+  let currentEra = 0;
+  let swapTl = null;
+  const setEra = (idx) => {
+    if (idx === currentEra || !eras[idx]) return;
+    const prev = eras[currentEra];
+    const next = eras[idx];
+    currentEra = idx;
+    next.group.visible = true;
+    if (reducedMotion) {
+      eras.forEach((e, i) => { e.fade = i === idx ? 1 : 0; e.group.visible = i === idx; });
+      return;
+    }
+    if (swapTl) swapTl.kill();
+    swapTl = gsap.timeline({ onComplete: () => { if (prev !== next) prev.group.visible = false; } });
+    swapTl.to(prev, { fade: 0, duration: 0.4, ease: 'power2.in' }, 0)
+      .to(prev.group.rotation, { y: '+=1.5', duration: 0.45, ease: 'power2.in' }, 0)
+      .fromTo(next, { fade: 0 }, { fade: 1, duration: 0.65, ease: 'power2.out' }, 0.32)
+      .fromTo(next.group.rotation, { y: -1.1 }, { y: 0, duration: 0.85, ease: 'power3.out' }, 0.32)
+      .fromTo(next.group.scale, { x: 0.55, y: 0.55, z: 0.55 }, { x: 1, y: 1, z: 1, duration: 0.85, ease: 'back.out(1.5)' }, 0.32);
+  };
+
+  /* — scroll choreography: the rig tours the whole page — */
+  const pose = { x: 2.1, y: 0.45, s: 1, op: 1 };
+  let marks = null;
+  const computeMarks = () => {
+    const vh = window.innerHeight;
+    const p1 = document.getElementById('part-1');
+    const p2 = document.getElementById('part-2');
+    const p3 = document.getElementById('part-3');
+    const col = document.querySelector('.colophon');
+    if (!p1 || !p2 || !p3 || !col) return;
+    marks = {
+      ways: [
+        { at: 0, x: 2.1, y: 0.45, s: 1, op: 1 },
+        { at: p1.offsetTop - vh * 0.55, x: 2.4, y: 0.15, s: 0.8, op: 0.95 },
+        { at: p1.offsetTop + vh * 0.7, x: -2.6, y: -0.2, s: 0.6, op: 0.5 },
+        { at: p2.offsetTop - vh * 0.55, x: 2.4, y: 0.12, s: 0.8, op: 0.95 },
+        { at: p2.offsetTop + vh * 0.7, x: -2.6, y: -0.25, s: 0.6, op: 0.5 },
+        { at: p3.offsetTop - vh * 0.55, x: 2.35, y: 0.12, s: 0.8, op: 0.95 },
+        { at: p3.offsetTop + vh * 0.7, x: -2.5, y: -0.2, s: 0.65, op: 0.55 },
+        { at: col.offsetTop - vh * 0.6, x: 2.05, y: 0.05, s: 0.95, op: 1 },
+      ],
+      eraAt: [p1.offsetTop - vh * 0.6, p2.offsetTop - vh * 0.6, p3.offsetTop - vh * 0.6],
+    };
+  };
+
+  const smooth01 = (v) => v * v * (3 - 2 * v);
+  const poseTarget = (yPos) => {
+    const w = marks.ways;
+    if (yPos <= w[0].at) return w[0];
+    if (yPos >= w[w.length - 1].at) return w[w.length - 1];
+    let i = 0;
+    while (i < w.length - 2 && yPos > w[i + 1].at) i += 1;
+    const a = w[i];
+    const b = w[i + 1];
+    const t = smooth01(Math.min(1, Math.max(0, (yPos - a.at) / Math.max(1, b.at - a.at))));
+    return {
+      x: a.x + (b.x - a.x) * t,
+      y: a.y + (b.y - a.y) * t,
+      s: a.s + (b.s - a.s) * t,
+      op: a.op + (b.op - a.op) * t,
+    };
+  };
+
   const mouse = { tx: 0, ty: 0, x: 0, y: 0 };
   if (!reducedMotion) {
     window.addEventListener('pointermove', (e) => {
@@ -107,7 +269,7 @@ try {
     });
   }
 
-  let ringBaseY = 0.45;
+  let resp = { s: 0.8, xf: 1, yo: 0 };
   const layout = () => {
     const w = window.innerWidth;
     const h = window.innerHeight;
@@ -115,15 +277,11 @@ try {
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
     if (w < 820) {
-      rings.position.x = 0;
-      rings.scale.setScalar(0.5);
+      resp = { s: 0.45, xf: 0.3, yo: 0.25 };
       camera.position.z = 6.9;
-      ringBaseY = 1.15;
     } else {
-      rings.position.x = 2.1;
-      rings.scale.setScalar(0.8);
+      resp = { s: 0.8, xf: 1, yo: 0 };
       camera.position.z = 6;
-      ringBaseY = 0.45;
     }
   };
   layout();
@@ -132,8 +290,12 @@ try {
   const clock = new THREE.Clock();
   let rafId = null;
 
+  let markTick = 0;
   const frame = () => {
     const t = clock.getElapsedTime();
+
+    markTick += 1;
+    if (!marks || markTick % 30 === 0) computeMarks();
 
     ring1.rotation.z = t * 0.05;
     ring1.rotation.x = Math.sin(t * 0.18) * 0.1;
@@ -148,20 +310,39 @@ try {
 
     mouse.x += (mouse.tx - mouse.x) * 0.035;
     mouse.y += (mouse.ty - mouse.y) * 0.035;
-    scroll.value += (scroll.target - scroll.value) * 0.06;
+
+    if (marks) {
+      const yNow = window.scrollY || 0;
+      const tgt = poseTarget(yNow);
+      pose.x += (tgt.x - pose.x) * 0.05;
+      pose.y += (tgt.y - pose.y) * 0.05;
+      pose.s += (tgt.s - pose.s) * 0.05;
+      pose.op += (tgt.op - pose.op) * 0.06;
+      const want = marks.eraAt.reduce((acc, at) => acc + (yNow > at ? 1 : 0), 0);
+      if (want !== currentEra) setEra(want);
+    }
 
     rings.rotation.y = -0.3 + mouse.x * 0.14;
-    rings.rotation.x = 0.3 - mouse.y * 0.1 + scroll.value * 0.5;
-    rings.position.y = ringBaseY + Math.sin(t * 0.5) * 0.06 + scroll.value * 2.6;
+    rings.rotation.x = 0.28 - mouse.y * 0.1;
+    rings.position.x = pose.x * resp.xf;
+    rings.position.y = pose.y + resp.yo + Math.sin(t * 0.5) * 0.06;
+    rings.scale.setScalar(pose.s * resp.s * introScale.v);
+    holder.rotation.y = t * 0.14;
 
-    const fade = Math.max(0, 1 - scroll.value * 1.3);
-    ringMats.forEach((m, i) => { m.opacity = baseOpacity[i] * fade; });
+    ringMats.forEach((m, i) => { m.opacity = baseOpacity[i] * pose.op; });
+    eras.forEach((e) => {
+      if (!e.group.visible) return;
+      e.mats.forEach((m, i) => { m.opacity = e.baseOp[i] * pose.op * e.fade; });
+    });
 
     renderer.render(scene, camera);
     rafId = requestAnimationFrame(frame);
   };
 
   if (reducedMotion) {
+    computeMarks();
+    rings.position.set(pose.x * resp.xf, pose.y + resp.yo, 0);
+    rings.scale.setScalar(pose.s * resp.s);
     renderer.render(scene, camera);
   } else {
     frame();
@@ -176,12 +357,13 @@ try {
     });
   }
   sceneApi = { camera };
-  window.__dbgRings = () => ({
-    op: ringMats.map((m) => m.opacity),
-    y: rings.position.y,
+  window.__dbgRig = () => ({
+    era: currentEra,
     x: rings.position.x,
-    sv: scroll.value,
-    st: scroll.target,
+    y: rings.position.y,
+    s: rings.scale.x,
+    op: pose.op,
+    marks: !!marks,
   });
 } catch (err) {
   console.warn('3D scene unavailable, continuing without it:', err);
@@ -202,13 +384,6 @@ if (reducedMotion) {
     content: '#smooth-content',
     smooth: 1.4,
     effects: true,
-  });
-
-  /* rings respond to the first ~1.8 viewports of scroll */
-  ScrollTrigger.create({
-    start: 0,
-    end: () => window.innerHeight * 1.8,
-    onUpdate: (self) => { scroll.target = self.progress; },
   });
 
   /* nav: frost when scrolled, tuck away when scrolling down */
@@ -246,17 +421,59 @@ if (reducedMotion) {
     .to('.scroll-cue', { opacity: 1, duration: 0.9 }, '-=0.5');
 
   if (rings) {
-    intro.from(rings.scale, { x: 0.85, y: 0.85, z: 0.85, duration: 1.8, ease: 'power2.out' }, 1.2);
+    intro.fromTo(introScale, { v: 0.82 }, { v: 1, duration: 1.8, ease: 'power2.out' }, 1.2);
   }
 
-  /* generic reveals */
+  /* generic reveals (headings get their own character treatment) */
   gsap.utils.toArray('.reveal').forEach((el) => {
+    if (el.matches('h2, .colophon-title')) return;
     gsap.fromTo(el, { y: 44, opacity: 0 }, {
       y: 0,
       opacity: 1,
       duration: 1.3,
       ease: 'power3.out',
       scrollTrigger: { trigger: el, start: 'top 86%' },
+    });
+  });
+
+  /* headings rise character by character */
+  gsap.utils.toArray('.part-head h2, .colophon-title').forEach((el) => {
+    gsap.set(el, { opacity: 1 });
+    const split = new SplitText(el, { type: 'chars', mask: 'chars' });
+    gsap.from(split.chars, {
+      yPercent: 115,
+      duration: 0.9,
+      ease: 'power4.out',
+      stagger: 0.02,
+      scrollTrigger: { trigger: el, start: 'top 86%' },
+    });
+  });
+
+  /* protocol steps stagger in */
+  gsap.fromTo('.protocol li', { y: 30, opacity: 0 }, {
+    y: 0,
+    opacity: 1,
+    duration: 0.9,
+    ease: 'power3.out',
+    stagger: 0.12,
+    scrollTrigger: { trigger: '.protocol', start: 'top 85%' },
+  });
+
+  /* hairlines draw themselves in */
+  gsap.utils.toArray('.part, .colophon').forEach((sec) => {
+    gsap.fromTo(sec, { '--rule-x': 0 }, {
+      '--rule-x': 1,
+      duration: 1.4,
+      ease: 'power3.inOut',
+      scrollTrigger: { trigger: sec, start: 'top 88%' },
+    });
+  });
+  gsap.utils.toArray('.notes').forEach((n) => {
+    gsap.fromTo(n, { '--rule-y': 0 }, {
+      '--rule-y': 1,
+      duration: 1.1,
+      ease: 'power3.out',
+      scrollTrigger: { trigger: n, start: 'top 85%' },
     });
   });
 

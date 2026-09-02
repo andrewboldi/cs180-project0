@@ -285,50 +285,37 @@ html:not(.js) #loader { display: none; }
 
 /* —— sections ——————————————————— */
 
-.brief, .part, .colophon {
+.part, .colophon {
   padding-inline: var(--gutter);
   max-width: calc(1240px + 2 * var(--gutter));
   margin-inline: auto;
 }
 
-.brief {
-  display: grid;
-  grid-template-columns: 1fr 2.4fr;
-  gap: 2rem 4rem;
-  padding-block: clamp(5rem, 11vh, 8rem);
-  border-top: 1px solid var(--hairline);
-}
-
-.brief-label {
-  font-family: var(--mono);
-  font-size: 0.68rem;
-  text-transform: uppercase;
-  letter-spacing: 0.24em;
-  color: var(--brass-deep);
-  margin: 0.4rem 0 0;
-}
-
-.brief-body p:first-child {
-  margin: 0;
-  font-weight: 300;
-  font-size: clamp(1.15rem, 2vw, 1.5rem);
-  line-height: 1.75;
-  max-width: 46rem;
-}
-
-.brief-meta {
-  margin: 2.2rem 0 0;
-  font-family: var(--mono);
-  font-size: 0.66rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--ink-soft);
-}
-
 .part {
   padding-block: clamp(6.5rem, 15vh, 11rem);
-  border-top: 1px solid var(--hairline);
 }
+
+/* section rules draw themselves in as you arrive */
+.part, .colophon {
+  --rule-x: 1;
+  position: relative;
+}
+
+.js .part, .js .colophon { --rule-x: 0; }
+
+.part::before, .colophon::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--hairline);
+  transform: scaleX(var(--rule-x));
+  transform-origin: left center;
+}
+
+.no-anim .part, .no-anim .colophon { --rule-x: 1 !important; }
 
 .part-head { margin-bottom: clamp(3rem, 7vh, 5rem); }
 
@@ -462,8 +449,24 @@ html:not(.js) #loader { display: none; }
 .notes {
   margin-top: clamp(3rem, 6vh, 4.5rem);
   max-width: 36rem;
-  border-left: 1px solid var(--brass);
   padding-left: clamp(1.2rem, 3vw, 2rem);
+  position: relative;
+  --rule-y: 1;
+}
+
+.js .notes { --rule-y: 0; }
+.no-anim .notes { --rule-y: 1 !important; }
+
+.notes::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 1px;
+  background: var(--brass);
+  transform: scaleY(var(--rule-y));
+  transform-origin: top center;
 }
 
 .notes-label {
@@ -532,6 +535,9 @@ html:not(.js) #loader { display: none; }
   color: var(--ink-soft);
 }
 
+.js .protocol li { opacity: 0; }
+.no-anim .protocol li { opacity: 1 !important; transform: none !important; }
+
 .protocol li span {
   display: block;
   font-family: var(--mono);
@@ -545,7 +551,34 @@ html:not(.js) #loader { display: none; }
 
 .colophon {
   padding-block: clamp(6rem, 14vh, 10rem) 3.5rem;
+}
+
+/* —— marquee ————————————————————— */
+
+.marquee {
+  overflow: hidden;
   border-top: 1px solid var(--hairline);
+  padding-block: clamp(1.2rem, 3vh, 2rem);
+}
+
+.marquee-track {
+  display: inline-flex;
+  white-space: nowrap;
+  will-change: transform;
+  animation: marquee-roll 38s linear infinite;
+}
+
+.marquee-track span {
+  font-family: var(--display);
+  font-size: clamp(2.6rem, 6vw, 4.8rem);
+  line-height: 1.1;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  opacity: 0.1;
+}
+
+@keyframes marquee-roll {
+  to { transform: translateX(-50%); }
 }
 
 .colophon-title {
@@ -774,7 +807,6 @@ html:not(.js) #loader { display: none; }
 @media (max-width: 820px) {
   .pair { grid-template-columns: 1fr; }
   .pair > .frame:nth-child(2) { margin-top: 2rem; }
-  .brief { grid-template-columns: 1fr; gap: 1.5rem; }
   .protocol { grid-template-columns: 1fr 1fr; }
   .scroll-cue { display: none; }
   .nav-links a { margin-left: 1.4rem; }
@@ -796,4 +828,5 @@ html:not(.js) #loader { display: none; }
   .nav-links a::after { transition: none; }
   .hud-rec i { animation: none; }
   .hero-title, .colophon-title { transition: none; }
+  .marquee-track { animation: none; }
 }
