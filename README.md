@@ -38,7 +38,7 @@ ffmpeg -framerate 12 -i dolly-%02d.jpg \
   -loop 0 part3-dollyzoom.gif
 ```
 
-(`face_super_far.jpeg` is unused — the pair uses close + far.)
+Part 1 shows all three portraits: close, far, and super-far.
 
 ## Files
 

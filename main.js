@@ -236,14 +236,20 @@ try {
         { at: 0, x: 2.1, y: 0.45, s: 1, op: 1 },
         { at: p1.offsetTop - vh * 0.55, x: -2.6, y: 0.5, s: 0.8, op: 0.9 },
         { at: p1.offsetTop + vh * 0.5, x: -2.35, y: -0.25, s: 0.62, op: 0.5 },
-        { at: p2.offsetTop - vh * 0.95, x: -2.35, y: -0.25, s: 0.62, op: 0.5 },
-        { at: p2.offsetTop - vh * 0.5, x: 2.45, y: 0.15, s: 0.8, op: 0.9 },
+        /* part 1 → part 2: long swoop down through the centre */
+        { at: p2.offsetTop - vh * 1.25, x: -2.35, y: -0.25, s: 0.62, op: 0.5 },
+        { at: p2.offsetTop - vh * 0.78, x: 0, y: -0.55, s: 0.55, op: 0.5 },
+        { at: p2.offsetTop - vh * 0.42, x: 2.45, y: 0.15, s: 0.8, op: 0.9 },
         { at: p2.offsetTop + vh * 0.5, x: 2.7, y: -0.25, s: 0.62, op: 0.5 },
-        { at: p3.offsetTop - vh * 0.95, x: 2.7, y: -0.25, s: 0.62, op: 0.5 },
-        { at: p3.offsetTop - vh * 0.5, x: -2.6, y: 0.5, s: 0.8, op: 0.9 },
+        /* part 2 → part 3 */
+        { at: p3.offsetTop - vh * 1.25, x: 2.7, y: -0.25, s: 0.62, op: 0.5 },
+        { at: p3.offsetTop - vh * 0.78, x: 0, y: -0.55, s: 0.55, op: 0.5 },
+        { at: p3.offsetTop - vh * 0.42, x: -2.6, y: 0.5, s: 0.8, op: 0.9 },
         { at: p3.offsetTop + vh * 0.5, x: -2.35, y: -0.2, s: 0.65, op: 0.55 },
-        { at: col.offsetTop - vh * 1.0, x: -2.35, y: -0.2, s: 0.65, op: 0.55 },
-        { at: col.offsetTop - vh * 0.45, x: 2.05, y: 0.05, s: 0.95, op: 1 },
+        /* part 3 → colophon */
+        { at: col.offsetTop - vh * 1.15, x: -2.35, y: -0.2, s: 0.65, op: 0.55 },
+        { at: col.offsetTop - vh * 0.78, x: 0, y: -0.45, s: 0.6, op: 0.6 },
+        { at: col.offsetTop - vh * 0.42, x: 2.05, y: 0.05, s: 0.95, op: 1 },
       ],
       eraAt: [p1.offsetTop - vh * 0.6, p2.offsetTop - vh * 0.7, p3.offsetTop - vh * 0.7],
     };
@@ -320,7 +326,7 @@ try {
     if (marks) {
       const yNow = window.scrollY || 0;
       const tgt = poseTarget(yNow);
-      pose.x += (tgt.x - pose.x) * 0.05;
+      pose.x += (tgt.x - pose.x) * 0.04;
       pose.y += (tgt.y - pose.y) * 0.05;
       pose.s += (tgt.s - pose.s) * 0.05;
       pose.op += (tgt.op - pose.op) * 0.06;

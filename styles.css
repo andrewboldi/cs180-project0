@@ -347,6 +347,11 @@ html:not(.js) #loader { display: none; }
 
 .pair > .frame:nth-child(2) { margin-top: clamp(2.5rem, 8vh, 6rem); }
 
+/* three-up: each frame steps down as the camera steps back */
+.pair.trio { grid-template-columns: repeat(3, 1fr); }
+.pair.trio > .frame:nth-child(2) { margin-top: clamp(1.8rem, 5vh, 3.6rem); }
+.pair.trio > .frame:nth-child(3) { margin-top: clamp(3.6rem, 10vh, 7.2rem); }
+
 .frame { margin: 0; }
 
 /* photographs display uncropped: the frame takes the image's own ratio */
@@ -805,8 +810,10 @@ html:not(.js) #loader { display: none; }
 /* —— responsive ————————————————— */
 
 @media (max-width: 820px) {
-  .pair { grid-template-columns: 1fr; }
-  .pair > .frame:nth-child(2) { margin-top: 2rem; }
+  .pair, .pair.trio { grid-template-columns: 1fr; }
+  .pair > .frame:nth-child(2),
+  .pair.trio > .frame:nth-child(2),
+  .pair.trio > .frame:nth-child(3) { margin-top: 2rem; }
   .protocol { grid-template-columns: 1fr 1fr; }
   .scroll-cue { display: none; }
   .nav-links a { margin-left: 1.4rem; }
