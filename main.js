@@ -228,18 +228,24 @@ try {
     const p3 = document.getElementById('part-3');
     const col = document.querySelector('.colophon');
     if (!p1 || !p2 || !p3 || !col) return;
+    /* pendulum: each swing lands on the opposite side and PARKS there for
+       the whole section — one crossing per transition, during the gap
+       before the next header (where the era morph also happens) */
     marks = {
       ways: [
         { at: 0, x: 2.1, y: 0.45, s: 1, op: 1 },
-        { at: p1.offsetTop - vh * 0.55, x: 2.4, y: 0.15, s: 0.8, op: 0.95 },
-        { at: p1.offsetTop + vh * 0.7, x: -2.6, y: -0.2, s: 0.6, op: 0.5 },
-        { at: p2.offsetTop - vh * 0.55, x: 2.4, y: 0.12, s: 0.8, op: 0.95 },
-        { at: p2.offsetTop + vh * 0.7, x: -2.6, y: -0.25, s: 0.6, op: 0.5 },
-        { at: p3.offsetTop - vh * 0.55, x: 2.35, y: 0.12, s: 0.8, op: 0.95 },
-        { at: p3.offsetTop + vh * 0.7, x: -2.5, y: -0.2, s: 0.65, op: 0.55 },
-        { at: col.offsetTop - vh * 0.6, x: 2.05, y: 0.05, s: 0.95, op: 1 },
+        { at: p1.offsetTop - vh * 0.55, x: -2.6, y: 0.5, s: 0.8, op: 0.9 },
+        { at: p1.offsetTop + vh * 0.5, x: -2.35, y: -0.25, s: 0.62, op: 0.5 },
+        { at: p2.offsetTop - vh * 0.95, x: -2.35, y: -0.25, s: 0.62, op: 0.5 },
+        { at: p2.offsetTop - vh * 0.5, x: 2.45, y: 0.15, s: 0.8, op: 0.9 },
+        { at: p2.offsetTop + vh * 0.5, x: 2.7, y: -0.25, s: 0.62, op: 0.5 },
+        { at: p3.offsetTop - vh * 0.95, x: 2.7, y: -0.25, s: 0.62, op: 0.5 },
+        { at: p3.offsetTop - vh * 0.5, x: -2.6, y: 0.5, s: 0.8, op: 0.9 },
+        { at: p3.offsetTop + vh * 0.5, x: -2.35, y: -0.2, s: 0.65, op: 0.55 },
+        { at: col.offsetTop - vh * 1.0, x: -2.35, y: -0.2, s: 0.65, op: 0.55 },
+        { at: col.offsetTop - vh * 0.45, x: 2.05, y: 0.05, s: 0.95, op: 1 },
       ],
-      eraAt: [p1.offsetTop - vh * 0.6, p2.offsetTop - vh * 0.6, p3.offsetTop - vh * 0.6],
+      eraAt: [p1.offsetTop - vh * 0.6, p2.offsetTop - vh * 0.7, p3.offsetTop - vh * 0.7],
     };
   };
 
