@@ -44,13 +44,45 @@
   </div>
 
   <header class="nav" id="nav">
-    <a class="nav-name" href="#top">Your&nbsp;Name</a>
-    <nav class="nav-links" aria-label="Sections">
-      <a href="#part-1">01<span class="nav-label"> · Selfie</span></a>
-      <a href="#part-2">02<span class="nav-label"> · Compression</span></a>
-      <a href="#part-3">03<span class="nav-label"> · Dolly&nbsp;Zoom</span></a>
-    </nav>
+    <a class="nav-name" href="#top">Andrew&nbsp;Boldi</a>
+    <div class="nav-right">
+      <nav class="nav-links" aria-label="Sections">
+        <a href="#part-1">01<span class="nav-label"> · Selfie</span></a>
+        <a href="#part-2">02<span class="nav-label"> · Compression</span></a>
+        <a href="#part-3">03<span class="nav-label"> · Dolly&nbsp;Zoom</span></a>
+      </nav>
+      <button class="nav-vf" id="vf-toggle" aria-pressed="false" title="Viewfinder — press V">
+        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="12" r="9"></circle>
+          <circle cx="12" cy="12" r="3.6"></circle>
+          <path d="M12 3v3.5M12 17.5V21M3 12h3.5M17.5 12H21"></path>
+        </svg>
+        <span class="sr-only">Toggle viewfinder overlay</span>
+      </button>
+    </div>
   </header>
+
+  <div class="shutter-blink" id="shutter-blink" aria-hidden="true"></div>
+
+  <div class="hud" id="hud" hidden aria-hidden="true">
+    <i class="hud-corner c-tl"></i><i class="hud-corner c-tr"></i><i class="hud-corner c-bl"></i><i class="hud-corner c-br"></i>
+    <div class="hud-grid"></div>
+    <svg class="hud-reticle" viewBox="0 0 80 80" fill="none" stroke="currentColor" stroke-width="1">
+      <circle cx="40" cy="40" r="26"></circle>
+      <line x1="40" y1="6" x2="40" y2="20"></line><line x1="40" y1="60" x2="40" y2="74"></line>
+      <line x1="6" y1="40" x2="20" y2="40"></line><line x1="60" y1="40" x2="74" y2="40"></line>
+    </svg>
+    <div class="hud-rec"><i></i><span>REC</span><span id="hud-frames">FR&nbsp;00</span></div>
+    <div class="hud-histo"><canvas id="hud-histo-canvas" width="128" height="42"></canvas><p>LUMA&nbsp;HIST · FIG.2B</p></div>
+    <div class="hud-kernel">
+      <p>SHARPEN&nbsp;3×3</p>
+      <div><span>0</span><span>−1</span><span>0</span><span>−1</span><span>5</span><span>−1</span><span>0</span><span>−1</span><span>0</span></div>
+    </div>
+    <div class="hud-exif"><span id="hud-f">f/1.8</span><span id="hud-shutter">1/250&nbsp;s</span><span id="hud-focal">26&nbsp;mm</span></div>
+    <div class="hud-af" id="hud-af"></div>
+  </div>
+
+  <div class="film-chip" id="film-chip" hidden aria-hidden="true">FR&nbsp;00</div>
 
   <div id="smooth-wrapper">
     <div id="smooth-content">
@@ -64,7 +96,7 @@
           </h1>
           <p class="hero-sub">Three small experiments in perspective — how focal length and where you stand reshape a photograph before you ever press the shutter.</p>
           <div class="exif-strip" aria-hidden="true">
-            <span>f/1.8</span><span>1/250&nbsp;s</span><span>ISO&nbsp;200</span><span>26–200&nbsp;mm</span><span>Berkeley,&nbsp;CA</span>
+            <span id="exif-f">f/1.8</span><span id="exif-shutter">1/250&nbsp;s</span><span id="exif-iso">ISO&nbsp;200</span><span id="exif-focal">26&nbsp;mm</span><span>Berkeley,&nbsp;CA</span>
           </div>
           <div class="scroll-cue"><span>Scroll</span><i></i></div>
         </section>
@@ -85,17 +117,17 @@
           </header>
           <div class="pair">
             <figure class="frame ratio-p">
-              <div class="frame-mask"><img src="media/part1-close.svg" alt="Placeholder for the close-up selfie, shot at arm's length" data-speed="auto"></div>
+              <div class="frame-mask"><img src="media/part1-close.jpg" alt="Selfie taken at arm's length with the wide lens — facial features exaggerated"></div>
               <figcaption>Fig. 1a — arm's length, no zoom</figcaption>
             </figure>
             <figure class="frame ratio-p">
-              <div class="frame-mask"><img src="media/part1-zoom.svg" alt="Placeholder for the stepped-back, zoomed-in portrait" data-speed="auto"></div>
+              <div class="frame-mask"><img src="media/part1-zoom.jpg" alt="Portrait taken from several feet back with the lens zoomed in — proportions flattened"></div>
               <figcaption>Fig. 1b — stepped back, zoomed in</figcaption>
             </figure>
           </div>
           <div class="notes reveal">
             <p class="notes-label">Observations</p>
-            <p>Up close, the lens exaggerates whatever is nearest to it — usually the nose. <em class="fill">[ Your explanation here: why does the stepped-back, zoomed-in portrait look better? What actually changed — the lens, or the distance? ]</em></p>
+            <p>Up close, the camera exaggerates whatever sits nearest to it — usually the nose. At arm's length my nose is a lot closer to the lens than my ears are, so it projects disproportionately large and the whole face bulges forward. Stepping back evens out those relative distances — nose and ears become almost equidistant from the camera — and zooming in simply restores the framing. The glass never changed the geometry; the distance did. What reads as a "flattering lens" is really a flattering camera position.</p>
           </div>
         </section>
 
@@ -107,17 +139,21 @@
           </header>
           <div class="pair pair-landscape">
             <figure class="frame ratio-l">
-              <div class="frame-mask"><img src="media/part2-zoom.svg" alt="Placeholder for the distant, zoomed-in photo of a building" data-speed="auto"></div>
+              <div class="frame-mask"><img src="media/part2-zoom.jpg" alt="Classical campus building photographed from far away with the lens zoomed in — the columned facade looks flattened"></div>
               <figcaption>Fig. 2a — far away + zoomed in</figcaption>
             </figure>
             <figure class="frame ratio-l">
-              <div class="frame-mask"><img src="media/part2-wide.svg" alt="Placeholder for the close-up, un-zoomed photo of the same building" data-speed="auto"></div>
+              <div class="frame-mask"><img src="media/part2-wide.jpg" alt="The same columned facade photographed from up close with no zoom — strong receding perspective"></div>
               <figcaption>Fig. 2b — walked closer, no zoom</figcaption>
             </figure>
           </div>
+          <div class="detect-row reveal">
+            <button class="detect-btn" id="detect-btn" aria-pressed="false"><span aria-hidden="true">⌖&nbsp;</span>Run corner detection</button>
+            <span class="detect-note" id="detect-note" aria-live="polite"></span>
+          </div>
           <div class="notes reveal">
             <p class="notes-label">Observations</p>
-            <p>In the telephoto view the façade looks flattened — planes that sit meters apart stack almost onto one another. <em class="fill">[ Your explanation here: why does shooting from a distance compress depth, while standing close exaggerates it? ]</em></p>
+            <p>In the telephoto view the façade looks flattened — planes that sit meters apart stack almost onto one another. From far away, the near and far ends of the building are nearly the same distance from the camera in relative terms, so they project at nearly the same scale and the depth between them collapses. Up close the ratio flips: the nearest column is a few meters off while the farthest is many times that, so scale falls away steeply and the perspective lines dive toward their vanishing point. Same building, same framing — the only thing that moved was me.</p>
           </div>
         </section>
 
@@ -131,28 +167,28 @@
             <li><span>01</span>Pick a scene with real depth behind the subject</li>
             <li><span>02</span>Step backward as you zoom in</li>
             <li><span>03</span>Keep the subject the same size in every frame</li>
-            <li><span>04</span>Stitch 4–8 stills into an animated GIF</li>
+            <li><span>04</span>Stitch the stills into a looping GIF</li>
           </ol>
-          <figure class="frame frame-wide ratio-l">
-            <div class="frame-mask"><img src="media/part3-dollyzoom.svg" alt="Placeholder for the dolly zoom animated GIF" data-speed="auto"></div>
-            <figcaption>Fig. 3 — dolly out, zoom in · animated GIF</figcaption>
+          <figure class="frame frame-wide ratio-p">
+            <div class="frame-mask"><img class="no-fx" src="media/part3-dollyzoom.gif" alt="Looping dolly zoom of a fountain pen — the pen holds its size while the room stretches behind it"></div>
+            <figcaption>Fig. 3 — dolly out, zoom in · looped GIF</figcaption>
           </figure>
           <div class="notes reveal">
             <p class="notes-label">Observations</p>
-            <p><em class="fill">[ Your notes here: what did you photograph, how many frames did you use, and what surprised you about the effect? ]</em></p>
+            <p>The subject is a fountain pen standing on a desk. I shot 26 stills, zooming out and then back in while moving the camera to hold the pen at a constant size, and stitched them into a GIF — since the sequence ends where it began, it loops seamlessly. The pen barely flinches, but the room behind it breathes: the background swells and compresses as the effective focal length changes. The surprise was how robust the illusion is — even a handheld, imperfect pull reads as vertigo once the subject's size is pinned.</p>
           </div>
         </section>
 
         <footer class="colophon">
           <p class="colophon-title reveal">Shot slowly.</p>
           <div class="colophon-meta reveal">
-            <p>Your Name — CS180: Intro to Computer Vision &amp; Computational Photography<br>UC Berkeley · Fall 2026</p>
+            <p>Andrew Boldi — CS180: Intro to Computer Vision &amp; Computational Photography<br>UC Berkeley · Fall 2026</p>
             <p class="colophon-links">
               <a href="https://cal-cs180.github.io/fa26/hw/proj0/index.html">Assignment ↗</a>
               <span aria-hidden="true">·</span>
               <a href="https://cal-cs180.github.io/fa26/">Course ↗</a>
             </p>
-            <p class="colophon-fine">Built with Three.js + GSAP · hosted on GitHub Pages</p>
+            <p class="colophon-fine">Built with Three.js + GSAP · press V for the viewfinder · click a photo · type 180 for vertigo</p>
           </div>
         </footer>
 
@@ -160,9 +196,9 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollSmoother.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/ScrollTrigger.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/ScrollSmoother.min.js"></script>
   <script type="importmap">
     {
       "imports": {

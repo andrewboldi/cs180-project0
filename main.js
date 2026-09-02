@@ -14,6 +14,7 @@ gsap.registerPlugin(ScrollTrigger, ScrollSmoother);
 
 const scroll = { target: 0, value: 0 };
 let rings = null;
+let sceneApi = null;
 
 try {
   const canvas = document.getElementById('scene');
@@ -174,6 +175,7 @@ try {
       }
     });
   }
+  sceneApi = { camera };
   window.__dbgRings = () => ({
     op: ringMats.map((m) => m.opacity),
     y: rings.position.y,
@@ -266,8 +268,8 @@ if (reducedMotion) {
     const tl = gsap.timeline({
       scrollTrigger: { trigger: el, start: 'top 80%' },
     });
-    tl.to(mask, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.4, ease: 'expo.inOut' })
-      .fromTo(img, { scale: 1.16 }, { scale: 1, duration: 2.2, ease: 'power3.out' }, 0.15)
+    tl.to(mask, { clipPath: 'inset(0% 0% 0% 0% round 18px)', duration: 1.4, ease: 'expo.inOut' })
+      .fromTo(img, { scale: 1.08 }, { scale: 1, duration: 2.2, ease: 'power3.out' }, 0.15)
       .fromTo(cap, { opacity: 0, y: 12 }, {
         opacity: 1, y: 0, duration: 0.8, ease: 'power2.out', immediateRender: true,
       }, 0.9);
@@ -289,3 +291,280 @@ if (reducedMotion) {
     });
   });
 }
+
+/* ————————————————— camera extras: live EXIF, viewfinder HUD, capture, corners, vertigo ————————————————— */
+
+(() => {
+  const anim = !reducedMotion;
+  const $ = (id) => document.getElementById(id);
+  let frames = 0;
+
+  /* — live EXIF strip: shutter follows scroll speed, focal follows page depth, f-stop follows the pointer — */
+  const exif = {
+    f: [$('exif-f'), $('hud-f')],
+    shutter: [$('exif-shutter'), $('hud-shutter')],
+    focal: [$('exif-focal'), $('hud-focal')],
+    iso: [$('exif-iso')],
+  };
+  const setText = (list, text) => list.forEach((el) => { if (el) el.textContent = text; });
+
+  const hour = new Date().getHours();
+  setText(exif.iso, hour >= 7 && hour < 19 ? 'ISO 100' : 'ISO 800');
+
+  const SHUTTERS = [[90, '1/60 s'], [450, '1/125 s'], [1200, '1/250 s'], [2800, '1/500 s'], [Infinity, '1/1000 s']];
+  const FSTOPS = ['f/1.8', 'f/2.8', 'f/4', 'f/5.6', 'f/8'];
+  let velo = 0;
+  let pointerX = 0.2;
+  window.addEventListener('pointermove', (e) => { pointerX = e.clientX / window.innerWidth; });
+
+  if (anim) {
+    ScrollTrigger.create({
+      start: 0,
+      end: 'max',
+      onUpdate: (self) => { velo = Math.abs(self.getVelocity()); },
+    });
+    let acc = 0;
+    gsap.ticker.add((t, dt) => {
+      acc += dt;
+      if (acc < 160) return;
+      acc = 0;
+      velo *= 0.8;
+      setText(exif.shutter, SHUTTERS.find(([v]) => velo < v)[1]);
+      const max = Math.max(1, ScrollTrigger.maxScroll(window));
+      const p = Math.min(1, Math.max(0, (window.scrollY || 0) / max));
+      setText(exif.focal, `${Math.round(26 + p * 174)} mm`);
+      setText(exif.f, FSTOPS[Math.min(FSTOPS.length - 1, Math.floor(pointerX * FSTOPS.length))]);
+    });
+  }
+
+  /* — viewfinder HUD (press V) — */
+  const hud = $('hud');
+  const vfBtn = $('vf-toggle');
+  const afEl = $('hud-af');
+  let hudOn = false;
+  let histoDone = false;
+
+  const drawHisto = () => {
+    if (histoDone) return;
+    histoDone = true;
+    const img = new Image();
+    img.onload = () => {
+      const w = 160;
+      const h = Math.max(8, Math.round((img.naturalHeight / img.naturalWidth) * w));
+      const c = document.createElement('canvas');
+      c.width = w;
+      c.height = h;
+      const ctx = c.getContext('2d', { willReadFrequently: true });
+      ctx.drawImage(img, 0, 0, w, h);
+      const { data } = ctx.getImageData(0, 0, w, h);
+      const bins = new Array(32).fill(0);
+      for (let i = 0; i < data.length; i += 4) {
+        const y = 0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2];
+        bins[Math.min(31, y >> 3)] += 1;
+      }
+      const peak = Math.max(...bins);
+      const out = $('hud-histo-canvas');
+      if (!out || !peak) return;
+      const octx = out.getContext('2d');
+      octx.clearRect(0, 0, out.width, out.height);
+      octx.fillStyle = '#7C5E31';
+      bins.forEach((v, i) => {
+        const bh = Math.max(1, Math.round((v / peak) * (out.height - 2)));
+        octx.fillRect(i * 4, out.height - bh, 3, bh);
+      });
+    };
+    img.src = 'media/part2-wide.jpg';
+  };
+
+  const afPos = { x: innerWidth / 2, y: innerHeight / 2, tx: innerWidth / 2, ty: innerHeight / 2 };
+  window.addEventListener('pointermove', (e) => { afPos.tx = e.clientX; afPos.ty = e.clientY; });
+  const afTick = () => {
+    const k = anim ? 0.16 : 1;
+    afPos.x += (afPos.tx - afPos.x) * k;
+    afPos.y += (afPos.ty - afPos.y) * k;
+    afEl.style.transform = `translate(${afPos.x.toFixed(1)}px, ${afPos.y.toFixed(1)}px)`;
+  };
+
+  const setHud = (on) => {
+    hudOn = on;
+    vfBtn.setAttribute('aria-pressed', String(on));
+    if (on) {
+      hud.hidden = false;
+      drawHisto();
+      gsap.ticker.add(afTick);
+      if (anim) {
+        gsap.fromTo(hud, { opacity: 0 }, { opacity: 1, duration: 0.45, ease: 'power2.out', overwrite: 'auto' });
+        [['.c-tl', -26, -26], ['.c-tr', 26, -26], ['.c-bl', -26, 26], ['.c-br', 26, 26]].forEach(([sel, x, y]) => {
+          gsap.fromTo(`.hud-corner${sel}`, { x, y }, { x: 0, y: 0, duration: 0.55, ease: 'power3.out', overwrite: 'auto' });
+        });
+      } else {
+        hud.style.opacity = 1;
+      }
+    } else {
+      gsap.ticker.remove(afTick);
+      if (anim) {
+        gsap.to(hud, { opacity: 0, duration: 0.3, ease: 'power1.out', overwrite: 'auto', onComplete: () => { hud.hidden = true; } });
+      } else {
+        hud.hidden = true;
+      }
+    }
+  };
+
+  /* — click a photo: shutter blink + film counter — */
+  const blink = $('shutter-blink');
+  const chip = $('film-chip');
+  const bumpCounter = () => {
+    frames += 1;
+    const label = `FR ${String(frames).padStart(2, '0')}`;
+    chip.hidden = false;
+    chip.textContent = label;
+    const hf = $('hud-frames');
+    if (hf) hf.textContent = label;
+    if (anim) gsap.fromTo(chip, { scale: 1.16 }, { scale: 1, duration: 0.45, ease: 'power2.out', overwrite: 'auto' });
+  };
+
+  document.querySelectorAll('.frame').forEach((fr) => {
+    fr.addEventListener('click', () => {
+      bumpCounter();
+      if (anim) {
+        gsap.timeline()
+          .set(blink, { opacity: 0.92 })
+          .to(blink, { opacity: 0, duration: 0.3, ease: 'power2.out' });
+        gsap.fromTo(fr, { scale: 0.985 }, { scale: 1, duration: 0.5, ease: 'power2.out', overwrite: 'auto' });
+      }
+    });
+  });
+
+  /* — real Harris corner detection on the part-2 pair — */
+  const harris = (img, topN) => {
+    const W = 180;
+    const H = Math.max(8, Math.round((img.naturalHeight / img.naturalWidth) * W));
+    const c = document.createElement('canvas');
+    c.width = W;
+    c.height = H;
+    const ctx = c.getContext('2d', { willReadFrequently: true });
+    ctx.drawImage(img, 0, 0, W, H);
+    const { data } = ctx.getImageData(0, 0, W, H);
+    const g = new Float32Array(W * H);
+    for (let i = 0; i < W * H; i += 1) {
+      g[i] = 0.2126 * data[i * 4] + 0.7152 * data[i * 4 + 1] + 0.0722 * data[i * 4 + 2];
+    }
+    const gx = new Float32Array(W * H);
+    const gy = new Float32Array(W * H);
+    for (let y = 1; y < H - 1; y += 1) {
+      for (let x = 1; x < W - 1; x += 1) {
+        const i = y * W + x;
+        gx[i] = g[i - W + 1] + 2 * g[i + 1] + g[i + W + 1] - g[i - W - 1] - 2 * g[i - 1] - g[i + W - 1];
+        gy[i] = g[i + W - 1] + 2 * g[i + W] + g[i + W + 1] - g[i - W - 1] - 2 * g[i - W] - g[i - W + 1];
+      }
+    }
+    const cand = [];
+    for (let y = 4; y < H - 4; y += 1) {
+      for (let x = 4; x < W - 4; x += 1) {
+        let ixx = 0;
+        let iyy = 0;
+        let ixy = 0;
+        for (let dy = -1; dy <= 1; dy += 1) {
+          for (let dx = -1; dx <= 1; dx += 1) {
+            const j = (y + dy) * W + (x + dx);
+            ixx += gx[j] * gx[j];
+            iyy += gy[j] * gy[j];
+            ixy += gx[j] * gy[j];
+          }
+        }
+        const tr = ixx + iyy;
+        const r = ixx * iyy - ixy * ixy - 0.05 * tr * tr;
+        if (r > 0) cand.push([r, x, y]);
+      }
+    }
+    cand.sort((a, b) => b[0] - a[0]);
+    const pts = [];
+    for (const [, x, y] of cand) {
+      if (pts.length >= topN) break;
+      if (pts.every(([px, py]) => (px - x) ** 2 + (py - y) ** 2 > 36)) pts.push([x, y]);
+    }
+    return pts.map(([x, y]) => [x / W, y / H]);
+  };
+
+  const detectBtn = $('detect-btn');
+  const detectNote = $('detect-note');
+  let cornersOn = false;
+
+  const clearCorners = () => document.querySelectorAll('.corner-layer').forEach((n) => n.remove());
+
+  if (detectBtn) {
+    detectBtn.addEventListener('click', () => {
+      cornersOn = !cornersOn;
+      detectBtn.setAttribute('aria-pressed', String(cornersOn));
+      if (!cornersOn) {
+        clearCorners();
+        detectNote.textContent = '';
+        return;
+      }
+      let total = 0;
+      document.querySelectorAll('#part-2 .frame-mask img').forEach((img) => {
+        const run = () => {
+          const pts = harris(img, 14);
+          total += pts.length;
+          const layer = document.createElement('div');
+          layer.className = 'corner-layer';
+          pts.forEach(([x, y]) => {
+            const dot = document.createElement('i');
+            dot.className = 'cpt';
+            dot.style.left = `${(x * 100).toFixed(2)}%`;
+            dot.style.top = `${(y * 100).toFixed(2)}%`;
+            layer.appendChild(dot);
+          });
+          img.parentElement.appendChild(layer);
+          if (anim) {
+            gsap.fromTo(layer.children, { scale: 0, opacity: 0 }, {
+              scale: 1, opacity: 1, duration: 0.4, stagger: 0.035, ease: 'back.out(2.2)',
+            });
+          }
+          detectNote.textContent = `${total} corners · harris · 3×3 sobel`;
+        };
+        if (img.complete && img.naturalWidth) run();
+        else img.addEventListener('load', run, { once: true });
+      });
+    });
+  }
+
+  /* — type "180": the site performs its own dolly zoom — */
+  let vertigoBusy = false;
+  const wrapperEl = document.getElementById('smooth-wrapper');
+  const vertigo = () => {
+    if (vertigoBusy || !anim) return;
+    vertigoBusy = true;
+    const tl = gsap.timeline({
+      onComplete: () => {
+        vertigoBusy = false;
+        gsap.set(wrapperEl, { clearProps: 'transform' });
+        ScrollTrigger.refresh();
+      },
+    });
+    tl.to(wrapperEl, { scale: 1.09, transformOrigin: '50% 42%', duration: 0.85, ease: 'power2.inOut' })
+      .to(wrapperEl, { scale: 1, duration: 0.95, ease: 'power3.inOut' }, '>');
+    if (sceneApi) {
+      const cam = sceneApi.camera;
+      const fov = { v: cam.fov };
+      const apply = () => { cam.fov = fov.v; cam.updateProjectionMatrix(); };
+      tl.to(fov, { v: 52, duration: 0.85, ease: 'power2.inOut', onUpdate: apply }, 0)
+        .to(fov, { v: 35, duration: 0.95, ease: 'power3.inOut', onUpdate: apply }, '>');
+    }
+    const f = { v: 26 };
+    const show = () => setText(exif.focal, `${Math.round(f.v)} mm`);
+    tl.to(f, { v: 200, duration: 0.85, ease: 'power2.inOut', onUpdate: show }, 0)
+      .to(f, { v: 26, duration: 0.95, ease: 'power3.inOut', onUpdate: show }, '>');
+  };
+
+  /* — wiring — */
+  vfBtn.addEventListener('click', () => setHud(!hudOn));
+  let keyBuffer = '';
+  window.addEventListener('keydown', (e) => {
+    if (e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+    if (e.key === 'v' || e.key === 'V') setHud(!hudOn);
+    else if (e.key === 'Escape' && hudOn) setHud(false);
+    keyBuffer = (keyBuffer + e.key).slice(-3);
+    if (keyBuffer === '180') vertigo();
+  });
+})();
